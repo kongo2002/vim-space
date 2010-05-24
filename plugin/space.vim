@@ -581,6 +581,38 @@ function! s:maybe_open_fold(cmd)
     endif
 endfunc
 
+function! s:space_map(type, key, protect)
+    if !exists('s:space_maps')
+        s:space_maps = []
+    endif
+
+    " populate a list with the mapped keys
+    let item = {}
+    let item.modes = 'no'
+    let item.key = a:key
+
+    " prepend a backslash to special keys
+    let mapkey = (a:key =~ '^<') ? '\' . a:key : a:key
+
+    exe 'nnoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
+    exe 'onoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
+
+    " when visual mapping should be protected from being overwritten,
+    " check if it is already mapped
+    if !a:protect || maparg(a:key, 'v') != ''
+        exe 'vnoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
+        let item.modes += 'v'
+    endif
+
+    " map select mode only if not desired otherwise
+    if !exists("g:space_disable_select_mode")
+        exe 'snoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
+        let item.modes += 's'
+    endif
+
+    call insert(s:space_maps, item)
+endfunc
+
 function! s:debug_msg(string)
     if exists("g:space_debug")
         echomsg a:string
