@@ -102,57 +102,56 @@ if exists("g:space_disable_select_mode")
     silent! sunmap <BS>
 endif
 
+function! s:map_space(type, key, protect)
+    if !exists('s:space_maps')
+        let s:space_maps = []
+    endif
+
+    " populate a list with the mapped keys
+    let item = {}
+    let item.modes = 'no'
+    let item.key = a:key
+
+    " prepend a backslash to special keys
+    let mapkey = (a:key =~ '^<') ? '\' . a:key : a:key
+
+    exe 'nnoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
+    exe 'onoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
+
+    " when visual mapping should be protected from being overwritten,
+    " check if it is already mapped
+    if !a:protect || maparg(a:key, 'v') == ''
+        exe 'vnoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
+        let item.modes += 'v'
+    endif
+
+    " map select mode only if not desired otherwise
+    if !exists("g:space_disable_select_mode")
+        exe 'snoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
+        let item.modes += 's'
+    endif
+
+    call insert(s:space_maps, item)
+endfunc
+
 " character movement commands
 if !exists("g:space_no_character_movements") || !g:space_no_character_movements
-    noremap <expr> <silent> f <SID>setup_space("char", "f")
-    noremap <expr> <silent> F <SID>setup_space("char", "F")
-    noremap <expr> <silent> t <SID>setup_space("char", "t")
-    noremap <expr> <silent> T <SID>setup_space("char", "T")
-    noremap <expr> <silent> ; <SID>setup_space("char", ";")
-    noremap <expr> <silent> , <SID>setup_space("char", ",")
-
-    if exists("g:space_disable_select_mode")
-        silent! sunmap f
-        silent! sunmap F
-        silent! sunmap t
-        silent! sunmap T
-        silent! sunmap ;
-        silent! sunmap ,
-    endif
+    for key in ['f', 'F', 't', 'T', ';', ',']
+        call <SID>map_space('char', key, 0)
+    endfor
 endif
 
 " search commands
 if !exists("g:space_no_search") || !g:space_no_search
-
     " do not override visual mappings for * and #
     " because these are often used for visual search functions
-    if maparg('*', 'v') != ''
-        nnoremap <expr> <silent> *  <SID>setup_space("search", "*")
-        onoremap <expr> <silent> *  <SID>setup_space("search", "*")
-    else
-        noremap <expr> <silent> *  <SID>setup_space("search", "*")
-    endif
+    for key in ['*', '#']
+        call <SID>map_space('search', key, 1)
+    endfor
 
-    if maparg('#', 'v') != ''
-        nnoremap <expr> <silent> #  <SID>setup_space("search", "#")
-        onoremap <expr> <silent> #  <SID>setup_space("search", "#")
-    else
-        noremap <expr> <silent> #  <SID>setup_space("search", "#")
-    endif
-
-    noremap <expr> <silent> g* <SID>setup_space("search", "g*")
-    noremap <expr> <silent> g# <SID>setup_space("search", "g#")
-    noremap <expr> <silent> n  <SID>setup_space("search", "n")
-    noremap <expr> <silent> N  <SID>setup_space("search", "N")
-
-    if exists("g:space_disable_select_mode")
-        silent! sunmap *
-        silent! sunmap #
-        silent! sunmap g*
-        silent! sunmap g#
-        silent! sunmap n
-        silent! sunmap N
-    endif
+    for key in ['g*', 'g#', 'n', 'N']
+        call <SID>map_space('search', key, 0)
+    endfor
 
     let s:search_mappings = 1
 else
@@ -161,101 +160,69 @@ endif
 
 " jump commands
 if !exists("g:space_no_jump") || !g:space_no_jump
-    noremap <expr> <silent> g, <SID>setup_space("cjump", "g,")
-    noremap <expr> <silent> g; <SID>setup_space("cjump", "g;")
-    noremap <expr> <silent> <C-O> <SID>setup_space("jump", "\<C-o>")
-    noremap <expr> <silent> <C-I> <SID>setup_space("jump", "\<C-i>")
+    for key in ['g,', 'g;']
+        call <SID>map_space('cjump', key, 0)
+    endfor
 
-    if exists("g:space_disable_select_mode")
-        silent! sunmap g,
-        silent! sunmap g;
-        silent! sunmap <C-o>
-        silent! sunmap <C-i>
-    endif
+    for key in ['<C-o>', '<C-i>']
+        call <SID>map_space('jump', key, 0)
+    endfor
 endif
 
 " diff next/prev
 if !exists("g:space_no_diff") || !g:space_no_diff
-    noremap <expr> <silent> ]c <SID>setup_space("diff", "]c")
-    noremap <expr> <silent> [c <SID>setup_space("diff", "[c")
-
-    if exists("g:space_disable_select_mode")
-        silent! sunmap ]c
-        silent! sunmap [c
-    endif
+    for key in [']c', '[c']
+        call <SID>map_space('diff', key, 0)
+    endfor
 endif
 
 " previous/next unmatched ( or [
 if !exists("g:space_no_brace") || !g:space_no_brace
-    noremap <expr> <silent> ]) <SID>setup_space("paren", "])")
-    noremap <expr> <silent> [( <SID>setup_space("paren", "[(")
+    for key in ['])', '[(']
+        call <SID>map_space('paren', key, 0)
+    endfor
 
-    noremap <expr> <silent> ]} <SID>setup_space("curly", "]}")
-    noremap <expr> <silent> [{ <SID>setup_space("curly", "[{")
-
-    if exists("g:space_disable_select_mode")
-        silent! sunmap ])
-        silent! sunmap [(
-        silent! sunmap ]}
-        silent! sunmap [{
-    endif
+    for key in [']}', '[{']
+        call <SID>map_space('curly', key, 0)
+    endfor
 endif
 
 " start/end of a method
 if !exists("g:space_no_method") || !g:space_no_method
-    noremap <expr> <silent> ]m <SID>setup_space("method_start", "]m")
-    noremap <expr> <silent> [m <SID>setup_space("method_start", "[m")
+    for key in [']m', '[m']
+        call <SID>map_space('method_start', key, 0)
+    endfor
 
-    noremap <expr> <silent> ]M <SID>setup_space("method_end", "]M")
-    noremap <expr> <silent> [M <SID>setup_space("method_end", "[M")
-
-    if exists("g:space_disable_select_mode")
-        silent! sunmap ]m
-        silent! sunmap [m
-        silent! sunmap ]M
-        silent! sunmap [M
-    endif
+    for key in [']M', '[M']
+        call <SID>map_space('method_end', key, 0)
+    endfor
 endif
 
 " previous/next section or '}'/'{' in the first column
 if !exists("g:space_no_section") || !g:space_no_section
-    noremap <expr> <silent> ]] <SID>setup_space("section_start", "]]")
-    noremap <expr> <silent> [[ <SID>setup_space("section_start", "[[")
+    for key in [']]', '[[']
+        call <SID>map_space('section_start', key, 0)
+    endfor
 
-    noremap <expr> <silent> ][ <SID>setup_space("section_end", "][")
-    noremap <expr> <silent> [] <SID>setup_space("section_end", "[]")
-
-    if exists("g:space_disable_select_mode")
-        silent! sunmap ]]
-        silent! sunmap [[
-        silent! sunmap ][
-        silent! sunmap []
-    endif
+    for key in ['][', '[]']
+        call <SID>map_space('section_end', key, 0)
+    endfor
 endif
 
 " previous/next fold
 if !exists("g:space_no_folds") || !g:space_no_folds
-    noremap <expr> <silent> zj <SID>setup_space("fold_next", "zj")
-    noremap <expr> <silent> zk <SID>setup_space("fold_next", "zk")
+    for key in ['zj', 'zk']
+        call <SID>map_space('fold_next', key, 0)
+    endfor
 
-    noremap <expr> <silent> ]z <SID>setup_space("fold_start", "]z")
-    noremap <expr> <silent> [z <SID>setup_space("fold_start", "[z")
-
-    if exists("g:space_disable_select_mode")
-        silent! sunmap zj
-        silent! sunmap zk
-        silent! sunmap ]z
-        silent! sunmap [z
-    endif
+    for key in [']z', '[z']
+        call <SID>map_space('fold_start', key, 0)
+    endfor
 endif
 
 " tag movement
 if !exists("g:space_no_tags") || !g:space_no_tags
-    noremap <expr> <silent> <C-]> <SID>setup_space("tag", "\<C-]>")
-
-    if exists("g:space_disable_select_mode")
-        silent! sunmap <C-]>
-    endif
+    call <SID>map_space('tag', key, 0)
 
     let s:tag_mappings = 1
 else
@@ -264,13 +231,9 @@ endif
 
 " undolist movement
 if !exists("g:space_no_undolist") || !g:space_no_undolist
-    noremap <expr> <silent> g- <SID>setup_space("undo", "g-")
-    noremap <expr> <silent> g+ <SID>setup_space("undo", "g+")
-
-    if exists("g:space_disable_select_mode")
-        silent! sunmap g-
-        silent! sunmap g+
-    endif
+    for key in ['g-', 'g+']
+        call <SID>map_space('undo', key, 0)
+    endfor
 endif
 
 " quickfix and location list commands
@@ -421,7 +384,7 @@ function! s:parse_cmd_line()
         if s:tag_mappings && cmd =~ s:pre_re . s:ta_re
             return <SID>setup_space("tag", cmd)
         endif
-    end
+    endif
     return "\<CR>"
 endfunc
 
@@ -581,38 +544,6 @@ function! s:maybe_open_fold(cmd)
     endif
 endfunc
 
-function! s:space_map(type, key, protect)
-    if !exists('s:space_maps')
-        s:space_maps = []
-    endif
-
-    " populate a list with the mapped keys
-    let item = {}
-    let item.modes = 'no'
-    let item.key = a:key
-
-    " prepend a backslash to special keys
-    let mapkey = (a:key =~ '^<') ? '\' . a:key : a:key
-
-    exe 'nnoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
-    exe 'onoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
-
-    " when visual mapping should be protected from being overwritten,
-    " check if it is already mapped
-    if !a:protect || maparg(a:key, 'v') != ''
-        exe 'vnoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
-        let item.modes += 'v'
-    endif
-
-    " map select mode only if not desired otherwise
-    if !exists("g:space_disable_select_mode")
-        exe 'snoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
-        let item.modes += 's'
-    endif
-
-    call insert(s:space_maps, item)
-endfunc
-
 function! s:debug_msg(string)
     if exists("g:space_debug")
         echomsg a:string
@@ -624,7 +555,7 @@ function! GetSpaceMovement()
         return s:space_move == "\<C-i>" ? "^I" : s:space_move
     else
         return ""
-    end
+    endif
 endfunc
 
 " vim: et sts=4 sw=4
