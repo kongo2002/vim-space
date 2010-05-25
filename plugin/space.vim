@@ -122,13 +122,13 @@ function! s:map_space(type, key, protect)
     " check if it is already mapped
     if !a:protect || maparg(a:key, 'v') == ''
         exe 'vnoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
-        let item.modes += 'v'
+        let item.modes .= 'v'
     endif
 
     " map select mode only if not desired otherwise
     if !exists("g:space_disable_select_mode")
         exe 'snoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
-        let item.modes += 's'
+        let item.modes .= 's'
     endif
 
     call insert(s:space_maps, item)
@@ -252,55 +252,15 @@ function! s:remove_space_mappings()
     silent! unmap <S-Space>
     silent! unmap <BS>
 
-    silent! unmap f
-    silent! unmap F
-    silent! unmap t
-    silent! unmap T
-    silent! unmap ;
-    silent! unmap ,
-
-    silent! unmap *
-    silent! unmap #
-    silent! unmap g*
-    silent! unmap g#
-    silent! unmap n
-    silent! unmap N
-
-    silent! unmap g,
-    silent! unmap g;
-    silent! unmap <C-o>
-    silent! unmap <C-i>
-
-    silent! unmap ]c
-    silent! unmap [c
-
-    silent! unmap [(
-    silent! unmap ])
-    silent! unmap [{
-    silent! unmap ]}
-
-    silent! unmap ]]
-    silent! unmap [[
-    silent! unmap ][
-    silent! unmap []
-
-    silent! unmap ]m
-    silent! unmap [m
-    silent! unmap ]M
-    silent! unmap [M
-
-    silent! unmap zj
-    silent! unmap zk
-    silent! unmap ]z
-    silent! unmap [z
-
-    silent! unmap <C-]>
-
-    silent! unmap g-
-    silent! unmap g+
-
     silent! cunmap <CR>
 
+    for item in s:space_maps
+        for mode in split(item['modes'], '\zs')
+            exe 'silent! '.mode.'unmap' item['key']
+        endfor
+    endfor
+
+    silent! unlet s:space_maps
     silent! unlet g:loaded_space
 endfunction
 
