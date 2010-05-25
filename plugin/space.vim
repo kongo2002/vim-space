@@ -120,8 +120,8 @@ function! s:map_space(type, key, protect)
 
     " check if visual mapping may be overwritten
     if !a:protect || maparg(a:key, 'v') == ''
-        exe 'vnoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
-        let item.modes .= 'v'
+        exe 'xnoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
+        let item.modes .= 'x'
     endif
 
     " map select mode only if not desired otherwise
