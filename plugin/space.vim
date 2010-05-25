@@ -118,8 +118,7 @@ function! s:map_space(type, key, protect)
     exe 'nnoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
     exe 'onoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
 
-    " when visual mapping should be protected from being overwritten,
-    " check if it is already mapped
+    " check if visual mapping may be overwritten
     if !a:protect || maparg(a:key, 'v') == ''
         exe 'vnoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
         let item.modes .= 'v'
@@ -244,8 +243,6 @@ else
     let s:quickfix_mappings = 0
 endif
 
-" TODO: Have all mappings add the remapped sequence to a list, and use that
-"       list to remove mappings.
 command! SpaceRemoveMappings call <SID>remove_space_mappings()
 function! s:remove_space_mappings()
     silent! unmap <Space>
