@@ -221,7 +221,7 @@ endif
 
 " tag movement
 if !exists("g:space_no_tags") || !g:space_no_tags
-    call <SID>map_space('tag', key, 0)
+    call <SID>map_space('tag', '<C-]>', 0)
 
     let s:tag_mappings = 1
 else
