@@ -102,7 +102,7 @@ if exists("g:space_disable_select_mode")
     silent! sunmap <BS>
 endif
 
-function! s:map_space(type, key, protect)
+function! s:map_space(type, key)
     if !exists('s:space_maps')
         let s:space_maps = []
     endif
@@ -119,7 +119,7 @@ function! s:map_space(type, key, protect)
     exe 'onoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
 
     " check if visual mapping may be overwritten
-    if !a:protect || maparg(a:key, 'v') == ''
+    if maparg(a:key, 'v') == ''
         exe 'xnoremap <expr> <silent>' a:key '<SID>setup_space("'.a:type.'", "'.mapkey.'")'
         let item.modes .= 'x'
     endif
@@ -136,20 +136,14 @@ endfunc
 " character movement commands
 if !exists("g:space_no_character_movements") || !g:space_no_character_movements
     for key in ['f', 'F', 't', 'T', ';', ',']
-        call <SID>map_space('char', key, 0)
+        call <SID>map_space('char', key)
     endfor
 endif
 
 " search commands
 if !exists("g:space_no_search") || !g:space_no_search
-    " do not override visual mappings for * and #
-    " because these are often used for visual search functions
-    for key in ['*', '#']
-        call <SID>map_space('search', key, 1)
-    endfor
-
-    for key in ['g*', 'g#', 'n', 'N']
-        call <SID>map_space('search', key, 0)
+    for key in ['*', '#', 'g*', 'g#', 'n', 'N']
+        call <SID>map_space('search', key)
     endfor
 
     let s:search_mappings = 1
@@ -160,68 +154,68 @@ endif
 " jump commands
 if !exists("g:space_no_jump") || !g:space_no_jump
     for key in ['g,', 'g;']
-        call <SID>map_space('cjump', key, 0)
+        call <SID>map_space('cjump', key)
     endfor
 
     for key in ['<C-o>', '<C-i>']
-        call <SID>map_space('jump', key, 0)
+        call <SID>map_space('jump', key)
     endfor
 endif
 
 " diff next/prev
 if !exists("g:space_no_diff") || !g:space_no_diff
     for key in [']c', '[c']
-        call <SID>map_space('diff', key, 0)
+        call <SID>map_space('diff', key)
     endfor
 endif
 
 " previous/next unmatched ( or [
 if !exists("g:space_no_brace") || !g:space_no_brace
     for key in ['])', '[(']
-        call <SID>map_space('paren', key, 0)
+        call <SID>map_space('paren', key)
     endfor
 
     for key in [']}', '[{']
-        call <SID>map_space('curly', key, 0)
+        call <SID>map_space('curly', key)
     endfor
 endif
 
 " start/end of a method
 if !exists("g:space_no_method") || !g:space_no_method
     for key in [']m', '[m']
-        call <SID>map_space('method_start', key, 0)
+        call <SID>map_space('method_start', key)
     endfor
 
     for key in [']M', '[M']
-        call <SID>map_space('method_end', key, 0)
+        call <SID>map_space('method_end', key)
     endfor
 endif
 
 " previous/next section or '}'/'{' in the first column
 if !exists("g:space_no_section") || !g:space_no_section
     for key in [']]', '[[']
-        call <SID>map_space('section_start', key, 0)
+        call <SID>map_space('section_start', key)
     endfor
 
     for key in ['][', '[]']
-        call <SID>map_space('section_end', key, 0)
+        call <SID>map_space('section_end', key)
     endfor
 endif
 
 " previous/next fold
 if !exists("g:space_no_folds") || !g:space_no_folds
     for key in ['zj', 'zk']
-        call <SID>map_space('fold_next', key, 0)
+        call <SID>map_space('fold_next', key)
     endfor
 
     for key in [']z', '[z']
-        call <SID>map_space('fold_start', key, 0)
+        call <SID>map_space('fold_start', key)
     endfor
 endif
 
 " tag movement
 if !exists("g:space_no_tags") || !g:space_no_tags
-    call <SID>map_space('tag', '<C-]>', 0)
+    call <SID>map_space('tag', '<C-]>')
 
     let s:tag_mappings = 1
 else
@@ -231,7 +225,7 @@ endif
 " undolist movement
 if !exists("g:space_no_undolist") || !g:space_no_undolist
     for key in ['g-', 'g+']
-        call <SID>map_space('undo', key, 0)
+        call <SID>map_space('undo', key)
     endfor
 endif
 
